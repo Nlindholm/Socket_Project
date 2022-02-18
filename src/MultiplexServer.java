@@ -12,6 +12,7 @@ import java.util.Set;
 public class MultiplexServer {
 
     private static final int CLIENT_CODE_LENGTH = 1;
+    private static final int MAX_FILE_NAME_LENGTH = 260;
 
     public static void main(String[] args) throws IOException{
 
@@ -99,11 +100,30 @@ public class MultiplexServer {
 
                             ByteBuffer data = ByteBuffer.wrap(allFiles.toString().getBytes());
                             serveChannel.write(data);
-
+                            serveChannel.close();
                             break;
 
                         case "D":
                             //Delete file
+                            //create buffer with max file name length
+                            buffer = ByteBuffer.allocate(MAX_FILE_NAME_LENGTH);
+
+                            //make sure we read the entire server reply
+                            while((serveChannel.read(buffer)) >= 0);
+
+                            buffer.flip();
+                            //buffer.remaining() tells the number of bytes in the buffer
+                            a = new byte[buffer.remaining()];
+                            buffer.get(a);
+                            String fileName = new String(a);
+
+                            File f = new File(fileName);
+                            if(f.delete()){
+                                sendReplyCode(serveChannel,"S");
+                            }else{
+                                sendReplyCode(serveChannel,"F");
+                            }
+                            serveChannel.close();
                             break;
 
                         case "G":

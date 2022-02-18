@@ -79,19 +79,37 @@ public class Client {
                     break;
 
                 case "D":
-                    File f = new File("");
-
-                    if (f.delete())
-                        System.out.println("File was deleted");
-                    else
-                        System.out.println("File was not deleted");
                     //Delete a file
                     //Ask the user for the file name
                     //Notify the user whether the operation is successful
+                    System.out.println("Type the name of the file you want to delete.");
+                    String fileName = keyboard.nextLine();
+
+                    //Create the TCP channel and connect to the server
+                    channel = SocketChannel.open();
+                    channel.connect(new InetSocketAddress(serverAddr, serverPort));
+
+                    buffer = ByteBuffer.wrap(("D"+fileName).getBytes());
+
+                    //send the bytes to the server
+                    channel.write(buffer);
+
+                    //Shutdown the channel for writing
+                    channel.shutdownOutput();
+
+                    //Receive server reply code
+                    //Make this if else a callable function becuase it will be used for each other command as well.
+                    if(serverCode(channel).equals("S")){
+                        System.out.println("The request was accepted by the server.");
+                    }else{
+                        System.out.println("The request was rejected");
+                    }
+
+                    channel.close();
                     break;
 
                 case "G":
-                    try (BufferedInputStream inputStream = new BufferedInputStream(new URL("").openStream());
+                    /*try (BufferedInputStream inputStream = new BufferedInputStream(new URL("").openStream());
 
                     FileOutputStream fileOS = new FileOutputStream("/Users/username/Documents/file_name.txt") {
                         byte data[] = new byte[1024];
@@ -99,18 +117,9 @@ public class Client {
                         while ((byteContent = inputStream.read(data, 0, 1024)) != -1) {
                             fileOS.write(data, 0, byteContent);
                         }
-                    } catch (IOException e) {
+                        } catch (IOException e) {
 
-                }
-
-
-
-
-
-
-
-
-
+                        }*/
                     //Get a file from the server
                     //Ask the user for the file name
                     //Notify the user whether the operation is successful
