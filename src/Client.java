@@ -15,6 +15,7 @@ public class Client {
     //size of the reply codes from the server
     //(reply code indicates whether the client request was accepted or rejected by server)
     private final static int SERVER_CODE_LENGTH = 1;
+    private static ByteBuffer FileBuffer;
 
     public static void main(String[] args) throws IOException{
 
@@ -109,20 +110,28 @@ public class Client {
                     break;
 
                 case "G":
-                    /*try (BufferedInputStream inputStream = new BufferedInputStream(new URL("").openStream());
-
-                    FileOutputStream fileOS = new FileOutputStream("/Users/username/Documents/file_name.txt") {
-                        byte data[] = new byte[1024];
-                        int byteContent;
-                        while ((byteContent = inputStream.read(data, 0, 1024)) != -1) {
-                            fileOS.write(data, 0, byteContent);
-                        }
-                        } catch (IOException e) {
-
-                        }*/
                     //Get a file from the server
                     //Ask the user for the file name
                     //Notify the user whether the operation is successful
+                    System.out.println("Type the name of the file you want to Get.");
+                    fileName = keyboard.nextLine();
+
+
+                    channel = SocketChannel.open();
+                    channel.connect(new InetSocketAddress(serverAddr, serverPort));
+
+                    buffer = FileBuffer.wrap(("G"+fileName).getBytes());
+
+                    if(serverCode(channel).equals("S")){
+                        System.out.println("The request was accepted by the server.");
+                    }else{
+                        System.out.println("The request was rejected");
+                    }
+
+                    channel.close();
+
+
+
                     break;
 
                 case "R":
@@ -130,6 +139,34 @@ public class Client {
                     //Ask the user for the original file name
                     //and the new file name.
                     //Notify the user whether the operation is successful.
+                    System.out.println("Type the name of the file you want to Rename.");
+                    fileName = keyboard.nextLine();
+
+                    channel = SocketChannel.open();
+                    channel.connect(new InetSocketAddress(serverAddr, serverPort));
+
+                    buffer = ByteBuffer.wrap(("R"+fileName).getBytes());
+
+                    //send the bytes to the server
+                    channel.write(buffer);
+
+                    //Shutdown the channel for writing
+                    channel.shutdownOutput();
+
+                    //Receive server reply code
+                    //Make this if else a callable function becuase it will be used for each other command as well.
+                    if(serverCode(channel).equals("S")){
+                        System.out.println("The request was accepted by the server.");
+                    }else{
+                        System.out.println("The request was rejected");
+                    }
+
+                    channel.close();
+
+
+
+
+
                     break;
 
                 default:
