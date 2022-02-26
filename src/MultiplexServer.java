@@ -8,6 +8,7 @@ import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
+import java.nio.file.Files;
 import java.util.Iterator;
 import java.util.Set;
 
@@ -140,7 +141,17 @@ public class MultiplexServer {
                             buffer.get(b);
                             String fileName2 = new String(b);
 
-                            FileOutputStream fout = new FileOutputStream(fileName2);
+                            File file = new File(fileName2);
+
+                            if(true){
+                                sendReplyCode(serveChannel,"S");
+                            }else{
+                                sendReplyCode(serveChannel,"F");
+                            }
+
+                            ByteBuffer download = ByteBuffer.wrap(file.toString().getBytes());
+                            serveChannel.write(download);
+                            serveChannel.close();
 
                             break;
 

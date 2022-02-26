@@ -1,9 +1,7 @@
-import java.io.BufferedInputStream;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.lang.constant.Constable;
 import java.net.InetSocketAddress;
+import java.net.Socket;
 import java.net.URL;
 import java.nio.Buffer;
 import java.nio.ByteBuffer;
@@ -16,7 +14,6 @@ public class Client {
     //size of the reply codes from the server
     //(reply code indicates whether the client request was accepted or rejected by server)
     private final static int SERVER_CODE_LENGTH = 1;
-    private static ByteBuffer FileBuffer;
 
     public static void main(String[] args) throws IOException{
 
@@ -117,11 +114,10 @@ public class Client {
                     System.out.println("Type the name of the file you want to Get.");
                     fileName = keyboard.nextLine();
 
-
                     channel = SocketChannel.open();
                     channel.connect(new InetSocketAddress(serverAddr, serverPort));
 
-                    buffer = FileBuffer.wrap(("G"+fileName).getBytes());
+                    buffer = ByteBuffer.wrap((fileName).getBytes());
 
                     //send the bytes to the server
                     channel.write(buffer);
@@ -131,8 +127,29 @@ public class Client {
 
                     if(serverCode(channel).equals("S")){
                         System.out.println("The request was accepted by the server.");
-                    }else{
-                        System.out.println("The request was rejected");
+                    }
+
+                    int bytesRead1;
+                    //read will return -1 if the server has closed the TCP connection
+                    // (when server has done sending)
+                    if (serverCode(channel).equals("F")) {
+                        System.out.println("Server rejected the request.");
+                        channel.close();
+
+                        break;
+                    } else {
+                        ByteBuffer data1 = ByteBuffer.allocate(1024);
+                        while ((bytesRead1 = channel.read(data1)) != -1) {
+                            //before reading from buffer, flip buffer
+                            //("limit" set to current position, "position" set to zero)
+                            data1.flip();
+                            byte[] d = new byte[bytesRead1];
+                            //copy bytes from buffer to array
+                            //(all bytes between "position" and "limit" are copied)
+                            data1.get(d);
+                            String serverMessage = new String(d);
+                            System.out.println(serverMessage);
+                        }
                     }
 
                     channel.close();
@@ -153,10 +170,10 @@ public class Client {
                     channel = SocketChannel.open();
                     channel.connect(new InetSocketAddress(serverAddr, serverPort));
 
-                    buffer = ByteBuffer.wrap(("R"+fileName+" "+newFileName).getBytes());
+                    ByteBuffer buffer2 = ByteBuffer.wrap(("R"+fileName+" "+newFileName).getBytes());
 
                     //send the bytes to the server
-                    channel.write(buffer);
+                    channel.write(buffer2);
 
                     //Shutdown the channel for writing
                     channel.shutdownOutput();
@@ -202,6 +219,5 @@ public class Client {
     }
 
     public static void setFileBuffer(ByteBuffer fileBuffer) {
-        FileBuffer = fileBuffer;
     }
 }
