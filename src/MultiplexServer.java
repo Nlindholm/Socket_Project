@@ -1,5 +1,7 @@
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
@@ -12,7 +14,7 @@ import java.util.Set;
 public class MultiplexServer {
 
     private static final int CLIENT_CODE_LENGTH = 1;
-    private static final int MAX_FILE_NAME_LENGTH = 260;
+    private static final int MAX_FILE_NAME_LENGTH = 1000;
 
     public static void main(String[] args) throws IOException{
 
@@ -115,9 +117,9 @@ public class MultiplexServer {
                             //buffer.remaining() tells the number of bytes in the buffer
                             a = new byte[buffer.remaining()];
                             buffer.get(a);
-                            String fileName = new String(a);
+                            String fileName1 = new String(a);
 
-                            File f = new File(fileName);
+                            File f = new File(fileName1);
                             if(f.delete()){
                                 sendReplyCode(serveChannel,"S");
                             }else{
@@ -132,6 +134,14 @@ public class MultiplexServer {
 
                             while((serveChannel.read(buffer)) >= 0);
 
+                            buffer.flip();
+                            //buffer.remaining() tells the number of bytes in the buffer
+                            byte[] b = new byte[buffer.remaining()];
+                            buffer.get(b);
+                            String fileName2 = new String(b);
+
+                            FileOutputStream fout = new FileOutputStream(fileName2);
+
                             break;
 
                         case "R":
@@ -143,16 +153,20 @@ public class MultiplexServer {
 
                             buffer.flip();
                             //buffer.remaining() tells the number of bytes in the buffer
-                            a = new byte[buffer.remaining()];
-                            buffer.get(a);
-                            fileName = new String(a);
+                            byte[] c = new byte[buffer.remaining()];
+                            buffer.get(c);
+                            String fileName = new String(c);
+                            
+                            //split fileNames into old and new file names
+                            String[] split = fileName.split(" ");
 
-                            f = new File(fileName);
-                            if(f.renameTo(new File("Bracken"))){
+                            File f1 = new File(split[0]);
+                            if(f1.renameTo(new File(split[1]))){
                                 sendReplyCode(serveChannel,"S");
                             }else{
                                 sendReplyCode(serveChannel,"F");
                             }
+
                             serveChannel.close();
                             break;
 

@@ -2,6 +2,7 @@ import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.lang.constant.Constable;
 import java.net.InetSocketAddress;
 import java.net.URL;
 import java.nio.Buffer;
@@ -122,6 +123,12 @@ public class Client {
 
                     buffer = FileBuffer.wrap(("G"+fileName).getBytes());
 
+                    //send the bytes to the server
+                    channel.write(buffer);
+
+                    //Shutdown the channel for writing
+                    channel.shutdownOutput();
+
                     if(serverCode(channel).equals("S")){
                         System.out.println("The request was accepted by the server.");
                     }else{
@@ -129,8 +136,6 @@ public class Client {
                     }
 
                     channel.close();
-
-
 
                     break;
 
@@ -142,10 +147,13 @@ public class Client {
                     System.out.println("Type the name of the file you want to Rename.");
                     fileName = keyboard.nextLine();
 
+                    System.out.println("Type what you want it to be renamed to.");
+                    String newFileName = keyboard.nextLine();
+
                     channel = SocketChannel.open();
                     channel.connect(new InetSocketAddress(serverAddr, serverPort));
 
-                    buffer = ByteBuffer.wrap(("R"+fileName).getBytes());
+                    buffer = ByteBuffer.wrap(("R"+fileName+" "+newFileName).getBytes());
 
                     //send the bytes to the server
                     channel.write(buffer);
@@ -162,9 +170,6 @@ public class Client {
                     }
 
                     channel.close();
-
-
-
 
 
                     break;
@@ -194,5 +199,9 @@ public class Client {
         //System.out.println(serverReplyCode);
 
         return serverReplyCode;
+    }
+
+    public static void setFileBuffer(ByteBuffer fileBuffer) {
+        FileBuffer = fileBuffer;
     }
 }
